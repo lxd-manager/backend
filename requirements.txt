@@ -1,0 +1,14 @@
+Django
+celery[redis]
+social-auth-app-django
+# pylxd
+-e git+https://github.com/felix-engelmann/pylxd.git@create_from_lxd#egg=pylxd
+djangorestframework
+flake8
+isort
+python-gitlab
+gunicorn
+dnslib
+get-docker-secret
+psycopg2
+django-fernet-fields

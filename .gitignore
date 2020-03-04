@@ -1,0 +1,10 @@
+*.sqlite3
+env/
+scratch/
+.idea
+*.py[cod]
+*.pyc
+certs/
+celerybeat-schedule
+celerybeat.pid
+lxd-instance
