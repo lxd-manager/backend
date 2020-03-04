@@ -9,9 +9,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Build, Tag, Push
-        uses: mattdavis0351/actions/docker-gpr@v1
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          image-name: backend
-          dockerfile-location: .
+      - name: Login to DockerHub Registry
+        run: echo ${{ secrets.GITHUB_TOKEN }} | docker login -u ${{ secrets.GITHUB_ACTOR }} --password-stdin docker.pkg.github.com
+      - name: Get the version
+        id: vars
+        run: echo ::set-output name=tag::$(echo ${GITHUB_REF:10})
+      - name: Build the tagged Docker image
+        run: docker build . --file Dockerfile --tag docker.pkg.github.com/lxd-manager/backend:latest
+      - name: Push the tagged Docker image
+        run: docker push docker.pkg.github.com/lxd-manager/backend:latest
