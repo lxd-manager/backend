@@ -15,6 +15,6 @@ jobs:
         id: vars
         run: echo ::set-output name=tag::$(echo ${GITHUB_REF:10})
       - name: Build the tagged Docker image
-        run: docker build . --file Dockerfile --tag docker.pkg.github.com/lxd-manager/backend:latest
+        run: docker build . --file Dockerfile --tag docker.pkg.github.com/lxd-manager/backend/api:latest
       - name: Push the tagged Docker image
-        run: docker push docker.pkg.github.com/lxd-manager/backend:latest
+        run: docker push docker.pkg.github.com/lxd-manager/backend/api:latest
