@@ -79,7 +79,7 @@ class ProjectViewSet(ModelViewSet):
         """
         Instantiates and returns the list of permissions that this view requires.
         """
-        if self.action in ['list', 'retrieve', 'update']:
+        if self.action in ['list', 'retrieve', 'update', 'create']:
             permission_classes = [IsStaff]
         else:
             permission_classes = [IsSuperuser]

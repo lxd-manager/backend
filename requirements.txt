@@ -2,7 +2,7 @@ Django
 celery[redis]
 social-auth-app-django
 # pylxd
--e git+https://github.com/felix-engelmann/pylxd.git@create_from_lxd#egg=pylxd
+-e git+https://github.com/felix-engelmann/pylxd.git@develop#egg=pylxd
 djangorestframework
 flake8
 isort
