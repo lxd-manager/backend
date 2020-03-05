@@ -10,11 +10,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Login to DockerHub Registry
-        run: docker login -u $GITHUB_ACTOR -p ${{ secrets.GITHUB_TOKEN }} docker.pkg.github.com
-      - name: Get the version
-        id: vars
-        run: echo ::set-output name=tag::$(echo ${GITHUB_REF:10})
+        run: docker login -u ${{ secrets.DOCKER_USER }} -p ${{ secrets.DOCKER_TOKEN }}
       - name: Build the tagged Docker image
-        run: docker build . --file Dockerfile --tag docker.pkg.github.com/lxd-manager/backend/api:latest
+        run: docker build . --file Dockerfile --tag lxdmanager/backend:latest
       - name: Push the tagged Docker image
-        run: docker push docker.pkg.github.com/lxd-manager/backend/api:latest
+        run: docker push lxdmanager/backend:latest
