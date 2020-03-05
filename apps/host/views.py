@@ -47,7 +47,7 @@ class ImageViewSet(viewsets.ModelViewSet):
         if self.request.user.is_superuser:
             queryset = Image.objects.all()
         else:
-            queryset = Image.objects.filter(sync=False)
+            queryset = Image.objects.filter(sync=False).exclude(available=None)
         return queryset
 
     def get_permissions(self):
