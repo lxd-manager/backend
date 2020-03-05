@@ -1,4 +1,5 @@
 import socket
+import os
 
 from get_docker_secret import get_docker_secret
 
@@ -15,6 +16,9 @@ except ModuleNotFoundError:
     SECRET_KEY = get_docker_secret('secret_key', default='5st$_zh=r-g4eumpw@u%x9tl-o5%t9s5-4cr*@u()jjo9!s^3+').strip()
     SOCIAL_AUTH_GITLAB_KEY = get_docker_secret('social_auth_gitlab_key', default='wrong key').strip()
     SOCIAL_AUTH_GITLAB_SECRET = get_docker_secret('social_auth_gitlab_secret', default='wrong secret').strip()
+
+if os.environ.get('DJANGO_DEBUG', False):
+    DEBUG = True
 
 if socket.gethostname() == 'larix':
     CELERY_BROKER_URL = "redis://localhost:6379"
