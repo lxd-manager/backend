@@ -48,16 +48,12 @@ class IPViewSet(viewsets.ModelViewSet):
             print("error", e)
             previousct = None
         print("previously ct", previousct)
+        serializer.instance.container = None
         serializer.save()
-        if not serializer.instance.siit_ip.exists():
-            # apply it in the container
-            if serializer.instance.container is None:
-                container_ip.delay(previousct.id)
-            else:
-                container_ip.delay(serializer.instance.container.id)
-        if serializer.instance.container is None:
-            # create SIIT mapping
-            pass
+        if previousct is not None:
+            container_ip.delay(previousct.id)
+        if serializer.instance.container_target:
+            container_ip.delay(serializer.instance.container_target.id)
 
 
 class ContainerViewSet(viewsets.ModelViewSet):
