@@ -32,6 +32,10 @@ class Host(models.Model):
 
 
 class Image(models.Model):
+    SIMPLESTREAMS = "simplestreams"
+    LXD = "lxd"
+    PROTOCOL = ((SIMPLESTREAMS, 'simplestreams'), (LXD, 'lxd'))
+
     properties = models.TextField()
     fingerprint = models.CharField(max_length=100)
 
@@ -39,6 +43,7 @@ class Image(models.Model):
     sync = models.BooleanField(default=False)
 
     server = models.CharField(max_length=300, null=True)
+    protocol = models.CharField(max_length=25, choices=PROTOCOL, default=LXD)
     alias = models.CharField(max_length=100, null=True)
 
     @property
