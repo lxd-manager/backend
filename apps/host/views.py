@@ -17,7 +17,7 @@ class HostViewSet(viewsets.ModelViewSet):
         """
         Instantiates and returns the list of permissions that this view requires.
         """
-        if self.action == 'list':
+        if self.action in ['list', 'retrieve']:
             permission_classes = [IsStaff]
         else:
             permission_classes = [IsSuperuser]
@@ -33,7 +33,7 @@ class SubnetViewSet(viewsets.ModelViewSet):
         """
         Instantiates and returns the list of permissions that this view requires.
         """
-        if self.action == 'list':
+        if self.action in ['list', 'retrieve']:
             permission_classes = [IsStaff]
         else:
             permission_classes = [IsSuperuser]
@@ -54,7 +54,7 @@ class ImageViewSet(viewsets.ModelViewSet):
         """
         Instantiates and returns the list of permissions that this view requires.
         """
-        if self.action == 'list':
+        if self.action in ['list', 'retrieve']:
             permission_classes = [IsStaff]
         else:
             permission_classes = [IsSuperuser]
