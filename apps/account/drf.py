@@ -1,4 +1,5 @@
 from rest_framework.permissions import BasePermission
+from rest_framework.authentication import SessionAuthentication
 
 
 class IsSuperuser(BasePermission):
@@ -17,3 +18,9 @@ class IsStaff(BasePermission):
 
     def has_permission(self, request, view):
         return request.user and request.user.has_perm('container.view_container')
+
+
+class CsrfExemptSessionAuthentication(SessionAuthentication):
+
+    def enforce_csrf(self, request):
+        return  # To not perform the csrf check previously happening

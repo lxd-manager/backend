@@ -10,6 +10,12 @@ REST_FRAMEWORK = {
         'apps.account.drf.IsStaff',
     ]
 }
+if os.environ.get('DJANGO_CSRF_EXCEPT', False):
+    REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'] = [
+        'apps.account.drf.CsrfExemptSessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication'
+    ]
+
 
 SOCIAL_AUTH_GITLAB_API_URL = os.environ.get('SOCIAL_AUTH_GITLAB_API_URL', 'https://localhost/')
 
