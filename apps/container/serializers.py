@@ -99,7 +99,7 @@ class ContainerCreateSerializer(ContainerSerializer):
     def create(self, validated_data):
         print(validated_data)
 
-        if validated_data["project"] is None:
+        if ("project" not in validated_data) or (validated_data["project"] is None):
             # create a new project for this container
             unique_id = get_random_string(length=8)
             pr = Project.objects.create(name=f'{validated_data["name"]}-single-{unique_id}')
