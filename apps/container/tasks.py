@@ -64,7 +64,8 @@ def synchost(host_id):
                 print("failed on ", e)
                 pass
             c.save()
-            if hasattr(ct.state(), "network") and ct.state().network is not None:
+            try:
+                #if hasattr(ct.state(), "network") and ct.state().network is not None:
                 for ifname, ifstate in ct.state().network.items():
                     if ifstate['state'] == 'up' and ifname == 'eth1':
                         for ifaddr in ifstate["addresses"]:
@@ -76,7 +77,8 @@ def synchost(host_id):
                                     ip.container_target = None
                                 ip.save()
                                 existingips.append(ip)
-
+            except AttributeError:
+                pass
             for i in c.ip_set.all():
                 if i not in existingips:
                     if i.is_ipv4:
