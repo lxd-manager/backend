@@ -92,8 +92,9 @@ def synchost(host_id):
                     c.save()
 
                     # delete old stale
-                    if c.state_version < datetime.now(timezone.utc) - timedelta(minutes=10):
-                        c.delete()
+                    if not isinstance(c.state_version, Now):
+                        if c.state_version < datetime.now(timezone.utc) - timedelta(minutes=10):
+                            c.delete()
 
         fingerprints = []
         available_aliases = []

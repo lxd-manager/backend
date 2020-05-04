@@ -129,4 +129,7 @@ class ContainerViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def perform_destroy(self, instance):
+        ct = self.get_object()
+        ct.target_status_code = 113
+        ct.save()
         delete_container.delay(instance.id)
