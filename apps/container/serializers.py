@@ -42,10 +42,11 @@ class IPSerializer(serializers.ModelSerializer):
     container_target = MyContainerSerializer(view_name='container-detail', required=False, allow_null=True)
     siit_map = MySIITSerializer(view_name='ip-detail', required=False, allow_null=True)
     container = serializers.HyperlinkedRelatedField(view_name="container-detail", read_only=True)
+    is_ipv4 = serializers.ReadOnlyField()
 
     class Meta:
         model = IP
-        fields = ('ip', 'url', 'prefixlen', 'siit_map', 'container', 'container_target')
+        fields = ('ip', 'url', 'is_ipv4', 'prefixlen', 'siit_map', 'container', 'container_target')
         extra_kwargs = {'ip': {'read_only': True},
                         'prefixlen': {'read_only': True}}
 
