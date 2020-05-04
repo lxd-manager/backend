@@ -22,6 +22,7 @@ class Container(models.Model):
     name = models.CharField(max_length=250)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, null=True)
     host = models.ForeignKey(Host, on_delete=models.CASCADE)
+    description = models.TextField(null=True, blank=True)
 
     state = models.TextField(null=True, blank=True)
     state_version = models.DateTimeField(null=True)

@@ -78,9 +78,10 @@ class ContainerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Container
-        fields = ('id', 'url', 'name', 'project', 'host', 'ips', "state", "state_version", "config", "nesting_enabled",
+        fields = ('id', 'url', 'name', 'description', 'project', 'host', 'ips', "state", "state_version", "config", "nesting_enabled",
                   'target_status_code', 'hostkeys')
         extra_kwargs = {'project': {'required': False},
+                        'description': {'required': False},
                         'state_version': {'read_only': True},
                         'target_status_code': {'read_only': True},
                         'config': {'read_only': True},
@@ -94,7 +95,7 @@ class ContainerCreateSerializer(ContainerSerializer):
     class Meta(ContainerSerializer.Meta):
         extra_kwargs = {'config': {'read_only': False},
                         'name': {'read_only': False}}
-        fields = ('name', 'project', 'host', "config")
+        fields = ('name', 'description', 'project', 'host', "config")
 
     def create(self, validated_data):
         print(validated_data)
