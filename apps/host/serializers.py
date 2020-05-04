@@ -28,6 +28,7 @@ class HostSerializer(serializers.ModelSerializer):
     subnet = serializers.HyperlinkedRelatedField(view_name='subnet-detail', queryset=Subnet.objects.all())
     trust_password = serializers.CharField(write_only=True, required=False)
     used_memory = serializers.SerializerMethodField('get_memory')
+    images = serializers.HyperlinkedRelatedField(many=True, view_name='image-detail', read_only=True, source='image_set')
 
     def get_memory(self, obj: Host):
         m = 0
@@ -41,7 +42,7 @@ class HostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Host
-        fields = ('id', 'url', 'name', 'subnet', 'api_url', 'trust_password', 'used_memory')
+        fields = ('id', 'url', 'name', 'subnet', 'api_url', 'trust_password', 'used_memory', 'images')
 
     def create(self, validated_data):
         pw = validated_data.pop('trust_password', '')
