@@ -49,14 +49,6 @@ class IPSerializer(serializers.ModelSerializer):
         extra_kwargs = {'ip': {'read_only': True},
                         'prefixlen': {'read_only': True}}
 
-    def validate(self, data):
-        """
-        Check that start is before finish.
-        """
-        if data['siit_map'] is not None and data['container_target'] is not None:
-            raise serializers.ValidationError("Either attach or translate")
-        return data
-
 
 class IPAdminSerializer(IPSerializer):
     class Meta(IPSerializer.Meta):
