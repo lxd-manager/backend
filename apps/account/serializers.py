@@ -17,7 +17,7 @@ class ProjectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
-        fields = ('name', 'users', 'url', 'containers')
+        fields = ('id', 'name', 'users', 'url', 'containers')
         extra_kwargs = {'name': {'read_only': True}}
 
 
