@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'apps.account.apps.AccountConfig',
     'apps.container.apps.ContainerConfig',
     'apps.host.apps.HostConfig',
+    'apps.dns.apps.DNSConfig',
     'social_django',
     'rest_framework',
 ]
