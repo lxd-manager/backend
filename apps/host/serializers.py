@@ -18,7 +18,7 @@ class ImageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Image
-        fields = ('id', 'properties', 'description', 'fingerprint', 'available', 'sync', 'server', 'protocol', 'alias')
+        fields = ('id', 'url', 'properties', 'description', 'fingerprint', 'available', 'sync', 'server', 'protocol', 'alias')
         extra_kwargs = {'properties': {'read_only': True},
                         'description': {'read_only': True},
                         'fingerprint': {'required': False}}
