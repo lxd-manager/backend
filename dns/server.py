@@ -21,6 +21,7 @@ import django  # noqa: F402
 django.setup()
 
 from apps.container.models import Container  # noqa: F402
+from apps.dns.models import ZoneExtra  # noqa: F402
 from django.conf import settings  # noqa: F402
 
 
@@ -37,6 +38,26 @@ class LXDResolver(BaseResolver):
         if qname.matchSuffix(self.origin):
             rem = qname.stripSuffix(self.origin)
             print(rem)
+
+            found_rrs = []
+            found_glob = []
+            for extra in ZoneExtra.objects.all():
+                rrs = RR.fromZone(extra.entry)
+                for rr in rrs:
+                    if rem.matchSuffix(rr.rname):
+                        rr.rname.label += self.origin.label
+                        found_rrs.append(rr)
+                    elif rem.matchGlob(rr.rname):
+                        rr.rname.label += self.origin.label
+                        found_glob.append(rr)
+
+            if len(found_rrs):
+                reply.add_auth(*RR.fromZone(f"{self.origin} 60 IN NS {settings.DNS_BASE_DOMAIN}"))
+                reply.add_answer(*found_rrs)
+            elif len(found_glob):
+                reply.add_auth(*RR.fromZone(f"{self.origin} 60 IN NS {settings.DNS_BASE_DOMAIN}"))
+                reply.add_answer(*found_glob)
+
             cts = Container.objects.filter(name=str(rem)[:-1])
             if cts.exists():
                 ct = cts.first()

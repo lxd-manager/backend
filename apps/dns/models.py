@@ -7,8 +7,7 @@ from django.db import models
 
 
 class ZoneExtra(models.Model):
-    name = models.CharField(max_length=250)
-    entry = models.CharField(max_length=1500)
+    entry = models.TextField()
     description = models.TextField(null=True, blank=True)
 
     def __str__(self):
