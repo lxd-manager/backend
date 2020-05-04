@@ -11,7 +11,7 @@ from .models import Container, Hostkey
 
 
 def update_ip(ct: Container):
-    ips = ct.ip_set.all() | ct.target_ip.all()
+    ips = ct.ip_set.filter(container_target__isnull=False) | ct.target_ip.all()
     profile_name = "network-%d-%s" % (ct.id, slugify(ct.name))
 
     cloud_init = """version: 1

@@ -73,8 +73,6 @@ def synchost(host_id):
                             if ipif.is_global:
                                 ip = IP.objects.get_or_create(ip="%s" % ipif.ip, prefixlen=ipif.network.prefixlen)[0]
                                 ip.container = c
-                                if ip.container_target and ip.container_target == c:
-                                    ip.container_target = None
                                 ip.save()
                                 existingips.append(ip)
             except AttributeError:
