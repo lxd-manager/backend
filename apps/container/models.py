@@ -67,6 +67,8 @@ class Container(models.Model):
             pass
         super(Container, self).save(*args, **kw)
 
+    def get_all_ips(self):
+        return self.ip_set.all() | self.target_ip.all()
 
 class Hostkey(models.Model):
     ECDSA = "ecdsa"

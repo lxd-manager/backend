@@ -63,8 +63,7 @@ class HostkeySerializer(serializers.ModelSerializer):
 
 
 class ContainerSerializer(serializers.ModelSerializer):
-    ips = IPSerializer(source='ip_set', many=True, read_only=True)
-    target_ips = IPSerializer(source='target_ip', many=True, read_only=True)
+    ips = IPSerializer(source='get_all_ips', many=True, read_only=True)
     state = serializers.JSONField(read_only=True, allow_null=True)
     project = MyProjectSerializer(required=False, allow_null=True, view_name='project-detail')
     hostkeys = HostkeySerializer(source="hostkey_set", read_only=True, many=True)
@@ -72,7 +71,7 @@ class ContainerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Container
-        fields = ('id', 'url', 'name', 'description', 'project', 'host', 'ips', 'target_ips', "state", "state_version", "config", "nesting_enabled",
+        fields = ('id', 'url', 'name', 'description', 'project', 'host', 'ips', "state", "state_version", "config", "nesting_enabled",
                   'target_status_code', 'hostkeys')
         extra_kwargs = {'project': {'required': False},
                         'description': {'required': False},
