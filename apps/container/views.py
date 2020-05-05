@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from apps.account.drf import IsStaff, IsSuperuser
 
 from .models import IP, Container
-from .serializers import ContainerCreateSerializer, ContainerSerializer, IPAdminSerializer, IPSerializer
+from .serializers import ContainerCreateSerializer, ContainerSerializer, ContainerFatSerializer, IPAdminSerializer, IPSerializer
 from .tasks import container_action, container_ip, container_keys, delete_container
 
 
@@ -70,6 +70,8 @@ class ContainerViewSet(viewsets.ModelViewSet):
         serializer_class = self.serializer_class
         if self.action == 'create':
             serializer_class = ContainerCreateSerializer
+        if self.action == 'list':
+            serializer_class = ContainerFatSerializer
         return serializer_class
 
     def get_permissions(self):

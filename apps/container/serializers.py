@@ -4,8 +4,9 @@ from django.db.models import Q
 from django.utils.crypto import get_random_string
 from rest_framework import serializers
 
-from apps.account.serializers import MyProjectSerializer
+from apps.account.serializers import MyProjectSerializer, MyProjectLinkSerializer
 from apps.host.models import Host
+from apps.host.serializers import HostSerializer
 
 from .models import IP, Container, Hostkey, Project
 from .tasks import create_container
@@ -65,7 +66,7 @@ class HostkeySerializer(serializers.ModelSerializer):
 class ContainerSerializer(serializers.ModelSerializer):
     ips = IPSerializer(source='get_all_ips', many=True, read_only=True)
     state = serializers.JSONField(read_only=True, allow_null=True)
-    project = MyProjectSerializer(required=False, allow_null=True, view_name='project-detail')
+    project = MyProjectLinkSerializer(required=False, allow_null=True, view_name='project-detail')
     hostkeys = HostkeySerializer(source="hostkey_set", read_only=True, many=True)
     host = serializers.HyperlinkedRelatedField(view_name='host-detail', read_only=True)
 
@@ -81,6 +82,10 @@ class ContainerSerializer(serializers.ModelSerializer):
                         'name': {'read_only': True},
                         'host': {'read_only': True}}
 
+
+class ContainerFatSerializer(ContainerSerializer):
+    project = MyProjectSerializer(required=False, allow_null=True)
+    host = HostSerializer(read_only=True)
 
 class ContainerCreateSerializer(ContainerSerializer):
     host = serializers.HyperlinkedRelatedField(view_name='host-detail', read_only=False, queryset=Host.objects.all())

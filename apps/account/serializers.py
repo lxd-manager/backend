@@ -21,10 +21,13 @@ class ProjectSerializer(serializers.ModelSerializer):
         extra_kwargs = {'name': {'read_only': True}}
 
 
-class MyProjectSerializer(serializers.HyperlinkedRelatedField):
+class MyProjectSerializer(ProjectSerializer):
     def get_queryset(self):
         return Project.objects.filter(users=self.context['request'].user)
 
+class MyProjectLinkSerializer(serializers.HyperlinkedRelatedField):
+    def get_queryset(self):
+        return Project.objects.filter(users=self.context['request'].user)
 
 class ProjectCreateSerializer(ProjectSerializer):
 

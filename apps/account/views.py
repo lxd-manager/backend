@@ -10,7 +10,7 @@ from apps.container.models import Project
 
 from .drf import IsStaff, IsSuperuser
 from .serializers import ProjectCreateSerializer, ProjectSerializer, UserSerializer
-
+from .proj_serializers import ProjectFatSerializer
 
 class UserViewSet(ModelViewSet):
 
@@ -73,6 +73,8 @@ class ProjectViewSet(ModelViewSet):
         serializer_class = self.serializer_class
         if self.action == 'create':
             serializer_class = ProjectCreateSerializer
+        if self.action == 'list':
+            serializer_class = ProjectFatSerializer
         return serializer_class
 
     def get_permissions(self):
