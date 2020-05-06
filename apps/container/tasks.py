@@ -2,7 +2,7 @@ from __future__ import absolute_import, unicode_literals
 
 import json
 from datetime import datetime, timedelta, timezone
-from ipaddress import ip_interface
+from ipaddress import ip_interface, IPv6Interface
 
 from celery import shared_task
 from django.conf import settings
@@ -73,7 +73,8 @@ def synchost(host_id):
                             if ipif.is_global:
                                 ip = IP.objects.get_or_create(ip="%s" % ipif.ip, prefixlen=ipif.network.prefixlen)[0]
                                 ip.container = c
-                                ip.container_target = c
+                                if isinstance(ipif, IPv6Interface):
+                                    ip.container_target = c
                                 ip.save()
                                 existingips.append(ip)
             except AttributeError:
@@ -82,7 +83,6 @@ def synchost(host_id):
                 if i not in existingips:
                     if i.is_ipv4:
                         i.container = None
-                        i.container_target = None
                         i.save()
                     else:
                         i.delete()
