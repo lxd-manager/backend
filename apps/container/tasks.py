@@ -208,18 +208,22 @@ def reload_profiles(co, prs, restart=True):
         pass
     ct.execute(['cloud-init', 'clean', '--seed'])
     # replace ssh profiles
+    print("profiles to apply:", prs)
     newsshpr = None
     for npr in prs:
         if npr.startswith("ssh-"):
             newsshpr = npr
+            print("there is a new ssh profile:", npr)
     oldpr = []
+    print("current profiles:", ct.profiles)
     for p in ct.profiles:
-        if p.startswith("ssh-") and newsshpr is not None:
+        if p.startswith("ssh-") and (newsshpr is not None):
             continue
         else:
             oldpr.append(p)
-
+    print("clean old profiles:",oldpr)
     ct.profiles = oldpr+prs
+    print("now profiles:", ct.profiles)
     ct.save()
 
     ct = client.containers.get(co.name)
