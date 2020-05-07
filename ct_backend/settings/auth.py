@@ -19,4 +19,4 @@ if os.environ.get('DJANGO_CSRF_EXCEPT', False):
 
 SOCIAL_AUTH_GITLAB_API_URL = os.environ.get('SOCIAL_AUTH_GITLAB_API_URL', 'https://localhost/')
 
-LOGIN_REDIRECT_URL = '/api/user/me/'
+LOGIN_REDIRECT_URL = '/'
