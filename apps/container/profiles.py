@@ -136,4 +136,6 @@ def update_profiles(ct: Container):
     pr.config.update({'user.user-data': cloud_init})
     pr.save()
 
-    return [profile_name]
+    host_key_profile = update_hostkey(ct)
+
+    return [profile_name, host_key_profile]
