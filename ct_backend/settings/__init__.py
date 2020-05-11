@@ -20,8 +20,10 @@ except ModuleNotFoundError:
 if os.environ.get('DJANGO_DEBUG', False):
     DEBUG = True
 
+# development maschine
 if socket.gethostname() == 'larix':
     CELERY_BROKER_URL = "redis://localhost:6379"
     CELERY_RESULT_BACKEND = "redis://localhost:6379"
+    LXD_CA_CERT = False
     ALLOWED_HOSTS = ['localhost']
     DEBUG = True
