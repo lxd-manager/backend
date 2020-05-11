@@ -91,7 +91,7 @@ class ContainerViewSet(viewsets.ModelViewSet):
         ct.target_status_code = 103
         ct.save()
 
-        container_action(ct.id, 'start')
+        container_action.delay(ct.id, 'start')
 
         serializer = ContainerSerializer(instance=ct, context={'request': request})
         return Response(serializer.data)
@@ -103,7 +103,7 @@ class ContainerViewSet(viewsets.ModelViewSet):
         ct.target_status_code = 102
         ct.save()
 
-        container_action(ct.id, 'stop')
+        container_action.delay(ct.id, 'stop')
 
         serializer = ContainerSerializer(instance=ct, context={'request': request})
         return Response(serializer.data)
@@ -115,7 +115,7 @@ class ContainerViewSet(viewsets.ModelViewSet):
         ct.target_status_code = 103
         ct.save()
 
-        container_action(ct.id, 'restart')
+        container_action.delay(ct.id, 'restart')
 
         serializer = ContainerSerializer(instance=ct, context={'request': request})
         return Response(serializer.data)

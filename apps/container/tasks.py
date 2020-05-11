@@ -15,8 +15,6 @@ from pylxd.exceptions import LXDAPIException, NotFound
 from apps.container.models import IP, Container
 from apps.host.models import Host, Image
 
-from .profiles import update_hostkey, update_ip, update_profiles
-
 
 @shared_task
 def synchost(host_id):
@@ -64,28 +62,29 @@ def synchost(host_id):
                 print("failed on ", e)
                 pass
             c.save()
-            try:
-                #if hasattr(ct.state(), "network") and ct.state().network is not None:
-                for ifname, ifstate in ct.state().network.items():
-                    if ifstate['state'] == 'up' and ifname == 'eth1':
-                        for ifaddr in ifstate["addresses"]:
-                            ipif = ip_interface("%s/%s" % (ifaddr["address"], ifaddr["netmask"]))
-                            if ipif.is_global:
-                                ip = IP.objects.get_or_create(ip="%s" % ipif.ip, prefixlen=ipif.network.prefixlen)[0]
-                                ip.container = c
-                                if isinstance(ipif, IPv6Interface):
-                                    ip.container_target = c
-                                ip.save()
-                                existingips.append(ip)
-            except AttributeError:
-                pass
-            for i in c.ip_set.all():
-                if i not in existingips:
-                    if i.is_ipv4:
-                        i.container = None
-                        i.save()
-                    else:
-                        i.delete()
+            if int(json.loads(c.state)["status_code"]) == 103: # only running contianers
+                try:
+                    #if hasattr(ct.state(), "network") and ct.state().network is not None:
+                    for ifname, ifstate in ct.state().network.items():
+                        if ifstate['state'] == 'up' and ifname == 'eth1':
+                            for ifaddr in ifstate["addresses"]:
+                                ipif = ip_interface("%s/%s" % (ifaddr["address"], ifaddr["netmask"]))
+                                if ipif.is_global:
+                                    ip = IP.objects.get_or_create(ip="%s" % ipif.ip, prefixlen=ipif.network.prefixlen)[0]
+                                    ip.container = c
+                                    if isinstance(ipif, IPv6Interface):
+                                        ip.container_target = c
+                                    ip.save()
+                                    existingips.append(ip)
+                except AttributeError:
+                    pass
+                for i in c.ip_set.all():
+                    if i not in existingips:
+                        if i.is_ipv4:
+                            i.container = None
+                            i.save()
+                        else:
+                            i.delete()
 
         for c in host.container_set.all():
             if c not in existingcts:
@@ -141,13 +140,16 @@ def create_container(container_id):
         client = Client(endpoint=ct.host.api_url,
                         cert=(getattr(settings, "LXD_CRT"), getattr(settings, "LXD_KEY")), verify=getattr(settings, "LXD_CA_CERT"))
 
-        prs = update_profiles(ct)
-        prs.append(update_hostkey(ct))
+        configs = {}
+        configs.update(ct.get_host_key_config())
+        configs.update(ct.project.get_ssh_config())
+        configs.update(ct.get_network_config())
 
         ic = json.loads(ct.config)
+        configs.update({"security.nesting": ic.get('config', {}).get("security.nesting", 'false')})
         conf = {"name": ct.name, 'source': {'type': 'image', "fingerprint": ic['source']['fingerprint'], },
-                'profiles': ['default'] + prs,
-                "config": {"security.nesting": ic.get('config', {}).get("security.nesting", 'false')}}
+                'profiles': ['default'],
+                "config": configs}
 
         client.containers.create(conf, wait=False)
     except Exception as e:
@@ -165,13 +167,6 @@ def delete_container(container_id):
         try:
             lct = client.containers.get(ct.name)
             lct.delete()
-        except NotFound:
-            pass
-
-        try:
-            profile_name = "hostkey-%d-%s" % (ct.id, slugify(ct.name))
-            lpr = client.profiles.get(profile_name)
-            lpr.delete()
         except NotFound:
             pass
 
@@ -222,7 +217,7 @@ def reload_profiles(co, prs, restart=True):
         else:
             oldpr.append(p)
     print("clean old profiles:",oldpr)
-    ct.profiles = oldpr+prs
+    ct.profiles = list(set(oldpr)+set(prs))
     print("now profiles:", ct.profiles)
     ct.save()
 

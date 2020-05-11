@@ -1,12 +1,17 @@
 import json
 from ipaddress import IPv4Interface, ip_interface
 
+import gitlab
+
 from django.contrib.auth.models import User
 from django.db import models, transaction
 from django.db.models.functions import Now
+from django.conf import settings
 from fernet_fields import EncryptedTextField
 
 from apps.host.models import Host
+
+from .utils import gen_keys
 
 
 class Project(models.Model):
@@ -16,6 +21,24 @@ class Project(models.Model):
     def __str__(self):
         users = ", ".join([u.username for u in self.users.all()])
         return f"{self.name} with {users}"
+
+    def get_ssh_config(self):
+        keystr = ""
+        for user in self.users.all():
+            try:
+                gl = gitlab.Gitlab(getattr(settings, "SOCIAL_AUTH_GITLAB_API_URL"),
+                                   oauth_token=user.social_auth.get().access_token)
+                gl.auth()
+                current_user = gl.user
+
+                for k in current_user.keys.list():
+                    keystr += ("  - \"%s\"\n" % k.key)
+            except Exception:
+                pass
+
+        cloud_init = '#cloud-config\n\nssh_authorized_keys:\n%s' % keystr
+
+        return {'user.user-data': cloud_init}
 
 
 class Container(models.Model):
@@ -69,6 +92,50 @@ class Container(models.Model):
 
     def get_all_ips(self):
         return self.ip_set.all() | self.target_ip.all()
+
+    def get_host_key_config(self):
+
+        if not self.hostkey_set.exists():
+            # generate keys
+            keys = gen_keys()
+            for t, k in keys.items():
+                Hostkey.objects.create(type=t, private=k[0], public=k[1], container=self)
+
+        # use keys
+        keystr = ""
+        for key in self.hostkey_set.all():
+            indentedkey = "\n    ".join(key.private.split('\n'))
+            keystr += ("  %s_private: |\n    %s\n" % (key.type, indentedkey))
+            keystr += ("  %s_public: %s\n" % (key.type, key.public))
+
+        cloud_init = '#cloud-config\n\nssh_keys:\n%s' % keystr
+        return {'user.vendor-data': cloud_init}
+
+    def get_network_config(self):
+        ips = self.ip_set.filter(container_target__isnull=False) | self.target_ip.all()
+
+        cloud_init = """version: 1
+config:
+  - type: physical
+    name: eth0
+    subnets:
+      - type: dhcp
+        control: auto
+  - type: physical
+    name: eth1
+    subnets:
+"""
+        for ip in ips:
+            if ip.is_ipv4:
+                cloud_init += f"""      - type: static
+        ipv4: true
+        address: {ip.ip}
+        netmask: {ip.get_interface().netmask}
+        gateway: {ip.get_gateway()}
+        control: auto
+"""
+        return {'user.network-config': cloud_init}
+
 
 class Hostkey(models.Model):
     ECDSA = "ecdsa"
