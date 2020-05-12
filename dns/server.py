@@ -10,6 +10,7 @@ from __future__ import print_function
 from dnslib import RR, parse_time, QTYPE, RCODE, A, AAAA
 from dnslib.label import DNSLabel
 from dnslib.server import DNSServer, DNSHandler, BaseResolver, DNSLogger
+from dnslib.dns import DNSRecord
 
 import sys
 import os
@@ -76,6 +77,10 @@ class LXDResolver(BaseResolver):
                         if not ip.is_ipv4:
                             reply.add_answer(RR(qname, QTYPE.AAAA, ttl=self.ttl,
                                                 rdata=AAAA(ip.ip)))
+            # try other server
+            if len(reply.rr) == 0 and settings.DNS_MIRROR_SERVER != "":
+                apk = request.send(settings.DNS_MIRROR_SERVER,53)
+                reply = DNSRecord.parse(apk)
         else:
             reply.header.rcode = RCODE.NXDOMAIN
         return reply
