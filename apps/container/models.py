@@ -136,6 +136,28 @@ config:
 """
         return {'user.network-config': cloud_init}
 
+    @property
+    def cloud_diffs(self):
+        diffs = {}
+        try:
+            c = json.loads(self.config)
+        except Exception as e:
+            return {}
+
+        for name, fn in [("user.network-config", self.get_network_config),
+                         ("user.user-data", lambda: self.project.get_ssh_config() if self.project is not None else "-1"),
+                         ("user.vendor-data", lambda: {"user.vendor-data": "****"})]:
+            if name not in c:
+                diffs[name] = {"present":False}
+                continue
+            real = c.get(name, "")
+            target = fn()[name]
+            if real == target:
+                diffs[name]={"uptodate":True}
+                continue
+            diffs[name] =  {"real": real, "target": target[name]}
+        return diffs
+
 
 class Hostkey(models.Model):
     ECDSA = "ecdsa"

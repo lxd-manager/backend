@@ -73,7 +73,7 @@ class ContainerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Container
         fields = ('id', 'url', 'name', 'description', 'project', 'host', 'ips', "state", "state_version", "config", "nesting_enabled",
-                  'target_status_code', 'hostkeys')
+                  'target_status_code', 'hostkeys', "cloud_diffs")
         extra_kwargs = {'project': {'required': False},
                         'description': {'required': False},
                         'state_version': {'read_only': True},
@@ -86,6 +86,7 @@ class ContainerSerializer(serializers.ModelSerializer):
 class ContainerFatSerializer(ContainerSerializer):
     project = MyProjectSerializer(required=False, allow_null=True)
     host = HostSerializer(read_only=True)
+
 
 class ContainerCreateSerializer(ContainerSerializer):
     host = serializers.HyperlinkedRelatedField(view_name='host-detail', read_only=False, queryset=Host.objects.all())

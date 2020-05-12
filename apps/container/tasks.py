@@ -190,57 +190,35 @@ def container_action(container_id, action):
     except Exception as e:
         print(e)
 
-
-def reload_profiles(co, prs, restart=True):
+def reload_cloud_init(co, conf, restart=True):
     client = Client(endpoint=co.host.api_url, cert=(getattr(settings, "LXD_CRT"), getattr(settings, "LXD_KEY")),
                     verify=getattr(settings, "LXD_CA_CERT"))
 
     ct = client.containers.get(co.name)
-
     try:
         ct.start(wait=True)
     except Exception:
         pass
     ct.execute(['cloud-init', 'clean', '--seed'])
-    # replace ssh profiles
-    print("profiles to apply:", prs)
-    newsshpr = None
-    for npr in prs:
-        if npr.startswith("ssh-"):
-            newsshpr = npr
-            print("there is a new ssh profile:", npr)
-    oldpr = []
-    print("current profiles:", ct.profiles)
-    for p in ct.profiles:
-        if p.startswith("ssh-") and (newsshpr is not None):
-            continue
-        else:
-            oldpr.append(p)
-    print("clean old profiles:",oldpr)
-    ct.profiles = list(set(oldpr)+set(prs))
-    print("now profiles:", ct.profiles)
-    ct.save()
-
-    ct = client.containers.get(co.name)
+    ct.config.update(conf)
     ct.config["volatile.apply_template"] = "create"
     ct.save()
-
     if restart:
         ct.restart()
 
 
 @shared_task
-def container_ip(container_id):
+def container_reconfig_ip(container_id):
     co = Container.objects.get(pk=container_id)
-    net_profile = update_ip(co)
-    print("new profiles", net_profile)
-
-    reload_profiles(co, [net_profile], restart=False)
+    configs = co.get_network_config()
+    reload_cloud_init(co, configs, restart=False)
 
 
 @shared_task
-def container_keys(container_id):
+def container_reconfig_keys(container_id):
     co = Container.objects.get(pk=container_id)
-    profiles = update_profiles(co)
-
-    reload_profiles(co, profiles)
+    configs = {}
+    if co.project:
+        configs = co.project.get_ssh_config()
+    configs.update(co.get_host_key_config())
+    reload_cloud_init(co, configs, restart=True)

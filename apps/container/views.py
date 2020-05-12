@@ -7,7 +7,7 @@ from apps.account.drf import IsStaff, IsSuperuser
 
 from .models import IP, Container
 from .serializers import ContainerCreateSerializer, ContainerSerializer, ContainerFatSerializer, IPAdminSerializer, IPSerializer
-from .tasks import container_action, container_ip, container_keys, delete_container
+from .tasks import container_action, container_reconfig_ip, container_reconfig_keys, delete_container
 
 
 class IPViewSet(viewsets.ModelViewSet):
@@ -48,12 +48,12 @@ class IPViewSet(viewsets.ModelViewSet):
             print("error", e)
             previousct = None
         print("previously ct", previousct)
-        serializer.instance.container = None
+        # serializer.instance.container = None
         serializer.save()
         if previousct is not None:
-            container_ip.delay(previousct.id)
+            container_reconfig_ip.delay(previousct.id)
         if serializer.instance.container_target:
-            container_ip.delay(serializer.instance.container_target.id)
+            container_reconfig_ip.delay(serializer.instance.container_target.id)
 
 
 class ContainerViewSet(viewsets.ModelViewSet):
@@ -125,7 +125,7 @@ class ContainerViewSet(viewsets.ModelViewSet):
         ct: Container
         ct = self.get_object()
 
-        container_keys.delay(ct.id)
+        container_reconfig_keys.delay(ct.id)
 
         serializer = ContainerSerializer(instance=ct, context={'request': request})
         return Response(serializer.data)
