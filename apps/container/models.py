@@ -171,6 +171,9 @@ class Hostkey(models.Model):
 
     container = models.ForeignKey(Container, on_delete=models.CASCADE)
 
+    def __str__(self):
+        return "%s: %s" % (self.container.name, self.type)
+
 
 class IP(models.Model):
     ip = models.GenericIPAddressField()

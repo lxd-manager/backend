@@ -88,6 +88,13 @@ class ContainerFatSerializer(ContainerSerializer):
     host = HostSerializer(read_only=True)
 
 
+class ContainerKeySerializer(ContainerSerializer):
+    keyimport = serializers.CharField(style={'base_template': 'textarea.html'})
+
+    class Meta(ContainerSerializer.Meta):
+        extra_kwargs = {'name': {'read_only': True}, }
+        fields = ('name', 'keyimport')
+
 class ContainerCreateSerializer(ContainerSerializer):
     host = serializers.HyperlinkedRelatedField(view_name='host-detail', read_only=False, queryset=Host.objects.all())
 

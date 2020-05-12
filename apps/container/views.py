@@ -5,8 +5,8 @@ from rest_framework.response import Response
 
 from apps.account.drf import IsStaff, IsSuperuser
 
-from .models import IP, Container
-from .serializers import ContainerCreateSerializer, ContainerSerializer, ContainerFatSerializer, IPAdminSerializer, IPSerializer
+from .models import IP, Container, Hostkey
+from .serializers import ContainerCreateSerializer, ContainerSerializer, ContainerFatSerializer, ContainerKeySerializer, IPAdminSerializer, IPSerializer
 from .tasks import container_action, container_reconfig_ip, container_reconfig_keys, delete_container
 
 
@@ -72,6 +72,8 @@ class ContainerViewSet(viewsets.ModelViewSet):
             serializer_class = ContainerCreateSerializer
         if self.action == 'list':
             serializer_class = ContainerFatSerializer
+        if self.action == 'import_keys':
+            serializer_class = ContainerKeySerializer
         return serializer_class
 
     def get_permissions(self):
@@ -116,6 +118,32 @@ class ContainerViewSet(viewsets.ModelViewSet):
         ct.save()
 
         container_action.delay(ct.id, 'restart')
+
+        serializer = ContainerSerializer(instance=ct, context={'request': request})
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['post','get'], permission_classes=[IsSuperuser])
+    def import_keys(self, request, pk=None):
+        ct: Container
+        ct = self.get_object()
+        if request.method != 'POST':
+            return Response({"run":"for i in /etc/ssh/ssh_host_*; do echo $i; cat $i; echo ''; done"})
+
+        data = request.POST["keyimport"]
+        parts = data.split("/etc/ssh")
+        keytypes = [t[1] for t in Hostkey.TYPE]
+        keys = {k:{} for k in keytypes}
+        for p in parts:
+            k = p.split("\n")
+            for type in keytypes:
+                if k[0].strip().endswith("host_%s_key"%type):
+                    keys[type]["private"] = "\n".join(k[1:]).strip()
+                if k[0].strip().endswith("host_%s_key.pub" % type):
+                    keys[type]["public"] = "\n".join(k[1:]).strip()
+
+        if not ct.hostkey_set.exists():
+            for t, k in keys.items():
+                Hostkey.objects.create(type=t, private=k['private'], public=k['public'], container=ct)
 
         serializer = ContainerSerializer(instance=ct, context={'request': request})
         return Response(serializer.data)
