@@ -155,7 +155,7 @@ config:
             if real == target:
                 diffs[name]={"uptodate":True}
                 continue
-            diffs[name] =  {"real": real, "target": target[name]}
+            diffs[name] =  {"real": real, "target": target}
         return diffs
 
 
