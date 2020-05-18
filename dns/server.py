@@ -24,6 +24,7 @@ django.setup()
 from apps.container.models import Container  # noqa: F402
 from apps.dns.models import ZoneExtra  # noqa: F402
 from django.conf import settings  # noqa: F402
+from django.db import connection
 
 
 class LXDResolver(BaseResolver):
@@ -83,6 +84,8 @@ class LXDResolver(BaseResolver):
                 reply = DNSRecord.parse(apk)
         else:
             reply.header.rcode = RCODE.NXDOMAIN
+
+        connection.close()
         return reply
 
 
