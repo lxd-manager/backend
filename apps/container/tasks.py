@@ -66,7 +66,7 @@ def synchost(host_id):
                 try:
                     #if hasattr(ct.state(), "network") and ct.state().network is not None:
                     for ifname, ifstate in ct.state().network.items():
-                        if ifstate['state'] == 'up' and ifname == 'eth1':
+                        if ifstate['state'] == 'up':
                             for ifaddr in ifstate["addresses"]:
                                 ipif = ip_interface("%s/%s" % (ifaddr["address"], ifaddr["netmask"]))
                                 if ipif.is_global:
