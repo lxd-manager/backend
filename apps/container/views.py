@@ -7,7 +7,7 @@ from apps.account.drf import IsStaff, IsSuperuser
 
 from .models import IP, Container, Hostkey
 from .serializers import ContainerCreateSerializer, ContainerSerializer, ContainerFatSerializer, ContainerKeySerializer, IPAdminSerializer, IPSerializer
-from .tasks import container_action, container_reconfig_ip, container_reconfig_keys, delete_container
+from .tasks import container_action, container_reconfig_ip, container_reconfig_keys, delete_container, container_migrate
 
 
 class IPViewSet(viewsets.ModelViewSet):
@@ -163,3 +163,13 @@ class ContainerViewSet(viewsets.ModelViewSet):
         ct.target_status_code = 113
         ct.save()
         delete_container.delay(instance.id)
+
+    def perform_update(self, serializer):
+        previoushost = serializer.instance.host
+        print(previoushost)
+        host = serializer.validated_data.get("host")
+        serializer.save()
+        if previoushost != host:
+            container_migrate.delay(serializer.instance.id, previoushost.id)
+
+

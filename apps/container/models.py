@@ -151,7 +151,10 @@ config:
                 diffs[name] = {"present":False}
                 continue
             real = c.get(name, "")
-            target = fn()[name]
+            try:
+                target = fn()[name]
+            except TypeError:
+                target = "-1"
             if real == target:
                 diffs[name]={"uptodate":True}
                 continue

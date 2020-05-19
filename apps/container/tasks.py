@@ -29,7 +29,7 @@ def synchost(host_id):
                 if h.syncing is not None:
                     syncing = True
                     if h.syncing < datetime.now(timezone.utc) - timedelta(minutes=10):
-                        print("remove stale lock")
+                        print("%s: remove stale lock" % host.name )
                         syncing = False
                         h.syncing = Now()
                         h.save()
@@ -40,7 +40,7 @@ def synchost(host_id):
                 syncing = True
 
         if syncing:
-            print("already processing ", host.name, " (abort), started: ", h.syncing)
+            print("already processing %s (abort), started: %s" % (host.name, h.syncing))
             return
 
         client = Client(endpoint=host.api_url, cert=(getattr(settings, "LXD_CRT"), getattr(settings, "LXD_KEY")),
@@ -56,10 +56,10 @@ def synchost(host_id):
             c.config = json.dumps(ct.expanded_config)
             try:
                 if int(json.loads(c.state)["status_code"]) == c.target_status_code:
-                    print("reached status code")
+                    print("%s :reached status code" % c.name)
                     c.target_status_code = None
             except Exception as e:
-                print("failed on ", e)
+                print("%s :failed on "%c, e)
                 pass
             c.save()
             if int(json.loads(c.state)["status_code"]) == 103: # only running contianers
@@ -117,7 +117,7 @@ def synchost(host_id):
                 else:
                     client.images.create_from_image(image.server, alias=image.alias, public=False, auto_update=True)
 
-        print("finished syncing ", host.name)
+        print("finished syncing %s" % host.name)
         h.syncing = None
         h.save()
 
@@ -222,3 +222,27 @@ def container_reconfig_keys(container_id):
         configs = co.project.get_ssh_config()
     configs.update(co.get_host_key_config())
     reload_cloud_init(co, configs, restart=True)
+
+
+@shared_task
+def container_migrate(container_id, srchost_id):
+    co = Container.objects.get(pk=container_id)
+    srchost = Host.objects.get(pk=srchost_id)
+
+    client_source = Client(endpoint=srchost.api_url, cert=(getattr(settings, "LXD_CRT"), getattr(settings, "LXD_KEY")),
+                    verify=getattr(settings, "LXD_CA_CERT"))
+    client_destination = Client(endpoint=co.host.api_url, cert=(getattr(settings, "LXD_CRT"), getattr(settings, "LXD_KEY")),
+                    verify=getattr(settings, "LXD_CA_CERT"))
+    cont = client_source.containers.get(co.name)
+
+    state = cont.api.state.get().json()['metadata']["status_code"]
+    was_running = False
+    if int(state) != 102:
+        if int(state) == 103:
+            was_running = True
+        cont.stop(wait=True)
+    cont.migrate(client_destination, wait=True)
+
+    if was_running:
+        cont = client_destination.containers.get(co.name)
+        cont.start(wait=True)
