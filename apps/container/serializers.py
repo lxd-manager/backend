@@ -73,7 +73,7 @@ class ContainerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Container
         fields = ('id', 'url', 'name', 'description', 'project', 'host', 'ips', "state", "state_version", "config", "nesting_enabled",
-                  'target_status_code', 'hostkeys', "cloud_diffs")
+                  'target_status_code', 'hostkeys', "cloud_diffs", "custom_network")
         extra_kwargs = {'project': {'required': False},
                         'description': {'required': False},
                         'state_version': {'read_only': True},

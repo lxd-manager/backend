@@ -28,7 +28,7 @@ def synchost(host_id):
                 h = Host.objects.select_for_update(nowait=True).get(id=host_id)
                 if h.syncing is not None:
                     syncing = True
-                    if h.syncing < datetime.now(timezone.utc) - timedelta(minutes=10):
+                    if h.syncing < datetime.now(timezone.utc) - timedelta(minutes=3):
                         print("%s: remove stale lock" % host.name )
                         syncing = False
                         h.syncing = Now()

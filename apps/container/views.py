@@ -3,6 +3,8 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from django.http.response import HttpResponse
+
 from apps.account.drf import IsStaff, IsSuperuser
 
 from .models import IP, Container, Hostkey
@@ -86,6 +88,10 @@ class ContainerViewSet(viewsets.ModelViewSet):
         permission_classes = [IsStaff]
         return [permission() for permission in permission_classes]
 
+    @action(detail=True, methods=['get'])
+    def vendor_network(self, request, pk=None):
+        return HttpResponse(self.get_object().get_network_config(vendor=True)["user.network-config"])
+
     @action(detail=True, methods=['post'])
     def start(self, request, pk=None):
         ct: Container
@@ -168,8 +174,11 @@ class ContainerViewSet(viewsets.ModelViewSet):
         previoushost = serializer.instance.host
         print(previoushost)
         host = serializer.validated_data.get("host")
+        prevnetwork = serializer.instance.custom_network
+        network = serializer.validated_data.get("custom_network")
         serializer.save()
         if previoushost != host:
             container_migrate.delay(serializer.instance.id, previoushost.id)
-
+        elif network != prevnetwork:
+            container_reconfig_ip.delay(serializer.instance.id)
 

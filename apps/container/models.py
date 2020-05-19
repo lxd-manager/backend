@@ -46,6 +46,7 @@ class Container(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, null=True)
     host = models.ForeignKey(Host, on_delete=models.CASCADE)
     description = models.TextField(null=True, blank=True)
+    custom_network = models.TextField(null=True, blank=True)
 
     state = models.TextField(null=True, blank=True)
     state_version = models.DateTimeField(null=True)
@@ -111,7 +112,9 @@ class Container(models.Model):
         cloud_init = '#cloud-config\n\nssh_keys:\n%s' % keystr
         return {'user.vendor-data': cloud_init}
 
-    def get_network_config(self):
+    def get_network_config(self, vendor=False):
+        if (vendor is False) and (self.custom_network is not None) and len(self.custom_network) > 0:
+            return {'user.network-config': self.custom_network}
         ips = self.ip_set.filter(container_target__isnull=False) | self.target_ip.all()
 
         cloud_init = """version: 1
