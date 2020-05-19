@@ -37,8 +37,10 @@ class LXDResolver(BaseResolver):
     def resolve(self, request, handler):
         reply = request.reply()
         qname = request.q.qname
-        if qname.matchSuffix(self.origin):
-            rem = qname.stripSuffix(self.origin)
+
+        suffix = DNSLabel(self.origin)
+        if str(qname.label[-len(suffix.label):]).lower() == str(suffix.label).lower():
+            rem = DNSLabel(qname.label[:-len(suffix.label)])
             print(rem)
 
             found_rrs = []
@@ -60,7 +62,7 @@ class LXDResolver(BaseResolver):
                 reply.add_auth(*RR.fromZone(f"{self.origin} 60 IN NS {settings.DNS_BASE_DOMAIN}"))
                 reply.add_answer(*found_glob)
 
-            cts = Container.objects.filter(name=str(rem)[:-1])
+            cts = Container.objects.filter(name=str(str(rem)[:-1]).lower())
             if cts.exists():
                 ct = cts.first()
                 reply.add_auth(*RR.fromZone(f"{self.origin} 60 IN NS {settings.DNS_BASE_DOMAIN}"))
