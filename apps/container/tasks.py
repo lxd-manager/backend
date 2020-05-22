@@ -112,11 +112,14 @@ def synchost(host_id):
                 image.available.remove(host)
             if image.sync and image.alias not in available_aliases:
                 # bring it there
-                if image.protocol == Image.SIMPLESTREAMS:
-                    client.images.create_from_simplestreams(image.server, alias=None, new_alias=image.alias, public=False, auto_update=True)
-                else:
-                    client.images.create_from_image(image.server, alias=image.alias, public=False, auto_update=True)
-
+                try:
+                    if image.protocol == Image.SIMPLESTREAMS:
+                        client.images.create_from_simplestreams(image.server, alias=None, new_alias=image.alias, public=False, auto_update=True)
+                    else:
+                        client.images.create_from_image(image.server, alias=image.alias, public=False, auto_update=True)
+                except:
+                    pass
+                
         print("finished syncing %s" % host.name)
         h.syncing = None
         h.save()
