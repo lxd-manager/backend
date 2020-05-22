@@ -119,7 +119,7 @@ def synchost(host_id):
                         client.images.create_from_image(image.server, alias=image.alias, public=False, auto_update=True)
                 except:
                     pass
-                
+
         print("finished syncing %s" % host.name)
         h.syncing = None
         h.save()
