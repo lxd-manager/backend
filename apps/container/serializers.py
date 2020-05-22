@@ -4,6 +4,7 @@ from django.db.models import Q
 from django.utils.crypto import get_random_string
 from rest_framework import serializers
 
+from apps.account.drf import is_sudo
 from apps.account.serializers import MyProjectSerializer, MyProjectLinkSerializer
 from apps.host.models import Host
 from apps.host.serializers import HostSerializer
@@ -14,7 +15,7 @@ from .tasks import create_container
 
 class MyContainerSerializer(serializers.HyperlinkedRelatedField):
     def get_queryset(self):
-        if self.context['request'].user.is_superuser:
+        if is_sudo(self.context['request']):
             return Container.objects.all()
         return Container.objects.filter(project__users=self.context['request'].user)
 
@@ -22,7 +23,7 @@ class MyContainerSerializer(serializers.HyperlinkedRelatedField):
 class MySIITSerializer(serializers.HyperlinkedRelatedField):
     def get_queryset(self):
         user = self.context['request'].user
-        if user.is_superuser:
+        if is_sudo(self.context['request']):
             queryset = IP.objects.all()
         else:
             queryset = IP.objects.filter(

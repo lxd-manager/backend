@@ -1,6 +1,6 @@
 from rest_framework import viewsets
 
-from apps.account.drf import IsStaff, IsSuperuser
+from apps.account.drf import IsStaff, IsSuperuser, is_sudo
 
 from .models import Host, Image, Subnet
 from .serializers import HostSerializer, ImageSerializer, SubnetSerializer
@@ -44,7 +44,7 @@ class ImageViewSet(viewsets.ModelViewSet):
     serializer_class = ImageSerializer
 
     def get_queryset(self):
-        if self.request.user.is_superuser:
+        if is_sudo(self.request):
             queryset = Image.objects.all()
         else:
             queryset = Image.objects.filter(sync=False).exclude(available=None)

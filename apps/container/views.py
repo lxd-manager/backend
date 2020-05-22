@@ -5,7 +5,7 @@ from rest_framework.response import Response
 
 from django.http.response import HttpResponse
 
-from apps.account.drf import IsStaff, IsSuperuser
+from apps.account.drf import IsStaff, IsSuperuser, is_sudo
 
 from .models import IP, Container, Hostkey
 from .serializers import ContainerCreateSerializer, ContainerSerializer, ContainerFatSerializer, ContainerKeySerializer, IPAdminSerializer, IPSerializer
@@ -16,7 +16,7 @@ class IPViewSet(viewsets.ModelViewSet):
     serializer_class = IPSerializer
 
     def get_queryset(self):
-        if self.request.user.is_superuser:
+        if is_sudo(self.request):
             queryset = IP.objects.all()
         else:
             queryset = IP.objects.filter(Q(container__isnull=True, siit_ip__isnull=True) | Q(
@@ -29,7 +29,7 @@ class IPViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         serializer_class = self.serializer_class
-        if self.request.user.is_superuser:
+        if is_sudo(self.request):
             serializer_class = IPAdminSerializer
         return serializer_class
 
@@ -62,7 +62,7 @@ class ContainerViewSet(viewsets.ModelViewSet):
     serializer_class = ContainerSerializer
 
     def get_queryset(self):
-        if self.request.user.is_superuser:
+        if is_sudo(self.request):
             queryset = Container.objects.all()
         else:
             queryset = Container.objects.filter(project__users=self.request.user)

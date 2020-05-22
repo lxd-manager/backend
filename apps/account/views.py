@@ -8,7 +8,7 @@ from rest_framework.viewsets import ModelViewSet
 
 from apps.container.models import Project
 
-from .drf import IsStaff, IsSuperuser
+from .drf import IsStaff, IsSuperuser, is_sudo
 from .serializers import ProjectCreateSerializer, ProjectSerializer, UserSerializer
 from .proj_serializers import ProjectFatSerializer
 
@@ -17,7 +17,7 @@ class UserViewSet(ModelViewSet):
     serializer_class = UserSerializer
 
     def get_queryset(self):
-        if self.request.user.is_superuser or self.action == 'list':
+        if is_sudo(self.request) or self.action == 'list':
             queryset = User.objects.all()
         else:
             queryset = User.objects.filter(pk=self.request.user.pk)
@@ -63,7 +63,7 @@ class ProjectViewSet(ModelViewSet):
     serializer_class = ProjectSerializer
 
     def get_queryset(self):
-        if self.request.user.is_superuser:
+        if is_sudo(self.request):
             queryset = Project.objects.all()
         else:
             queryset = Project.objects.filter(users=self.request.user)
