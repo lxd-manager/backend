@@ -49,3 +49,7 @@ class HostSerializer(serializers.ModelSerializer):
         instance = super().create(validated_data)
         authenticate_host.delay(instance.id, pw)
         return instance
+
+
+class ImageFatSerializer(ImageSerializer):
+    available = HostSerializer(many=True)

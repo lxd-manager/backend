@@ -3,7 +3,7 @@ from rest_framework import viewsets
 from apps.account.drf import IsStaff, IsSuperuser, is_sudo
 
 from .models import Host, Image, Subnet
-from .serializers import HostSerializer, ImageSerializer, SubnetSerializer
+from .serializers import HostSerializer, ImageSerializer, SubnetSerializer, ImageFatSerializer
 
 # Create your views here.
 
@@ -49,6 +49,12 @@ class ImageViewSet(viewsets.ModelViewSet):
         else:
             queryset = Image.objects.filter(sync=False).exclude(available=None)
         return queryset
+
+    def get_serializer_class(self):
+        serializer_class = self.serializer_class
+        if self.action == 'list':
+            serializer_class = ImageFatSerializer
+        return serializer_class
 
     def get_permissions(self):
         """
