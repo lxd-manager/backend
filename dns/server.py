@@ -87,6 +87,9 @@ class LXDResolver(BaseResolver):
                 connections.close_all()  # might fail
                 apk = request.send(settings.DNS_MIRROR_SERVER, 53, timeout=30)
                 reply = DNSRecord.parse(apk)
+
+            if len(reply.rr) == 0:
+                reply.header.rcode = RCODE.NXDOMAIN
         else:
             reply.header.rcode = RCODE.NXDOMAIN
 
