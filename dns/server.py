@@ -89,8 +89,7 @@ class LXDResolver(BaseResolver):
         else:
             reply.header.rcode = RCODE.NXDOMAIN
 
-        for conn in connections:
-            conn.close()
+        connections.close_all()
         return reply
 
 
