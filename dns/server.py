@@ -25,7 +25,7 @@ django.setup()
 from apps.container.models import Container  # noqa: F402
 from apps.dns.models import ZoneExtra  # noqa: F402
 from django.conf import settings  # noqa: F402
-from django.db import connection
+from django.db import connections
 
 
 class LXDResolver(BaseResolver):
@@ -66,7 +66,7 @@ class LXDResolver(BaseResolver):
             cts = Container.objects.filter(name=str(str(rem)[:-1]).lower())
             if cts.exists():
                 ct = cts.first()
-                if int(json.loads(ct.state)["status_code"]) == 103: # only running contianers
+                if True or int(json.loads(ct.state)["status_code"]) == 103: # only running contianers
                     reply.add_auth(*RR.fromZone(f"{self.origin} 60 IN NS {settings.DNS_BASE_DOMAIN}"))
 
                     if request.q.qtype == QTYPE.A:
@@ -89,7 +89,8 @@ class LXDResolver(BaseResolver):
         else:
             reply.header.rcode = RCODE.NXDOMAIN
 
-        connection.close()
+        for conn in connections:
+            conn.close()
         return reply
 
 
