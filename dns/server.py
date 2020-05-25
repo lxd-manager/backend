@@ -89,7 +89,7 @@ class LXDResolver(BaseResolver):
                 reply = DNSRecord.parse(apk)
 
             if len(reply.rr) == 0:
-                reply.header.rcode = RCODE.NXDOMAIN
+                reply.header.rcode = RCODE.NOERROR
         else:
             reply.header.rcode = RCODE.NXDOMAIN
 
