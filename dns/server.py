@@ -82,7 +82,8 @@ class LXDResolver(BaseResolver):
                             reply.add_answer(RR(qname, QTYPE.AAAA, ttl=self.ttl,
                                                 rdata=AAAA(ip.ip)))
             # try other server
-            if len(reply.rr) == 0 and settings.DNS_MIRROR_SERVER != "":
+            if len(reply.rr) == 0 and (settings.DNS_MIRROR_SERVER is not None):
+                print("checking other server because no rr and env: .%s. "%settings.DNS_MIRROR_SERVER)
                 connections.close_all()  # might fail
                 apk = request.send(settings.DNS_MIRROR_SERVER, 53, timeout=30)
                 reply = DNSRecord.parse(apk)
