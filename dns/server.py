@@ -66,7 +66,7 @@ class LXDResolver(BaseResolver):
             cts = Container.objects.filter(name=str(str(rem)[:-1]).lower())
             if cts.exists():
                 ct = cts.first()
-                if True or int(json.loads(ct.state)["status_code"]) == 103: # only running contianers
+                if int(json.loads(ct.state)["status_code"]) == 103: # only running contianers
                     reply.add_auth(*RR.fromZone(f"{self.origin} 60 IN NS {settings.DNS_BASE_DOMAIN}"))
 
                     if request.q.qtype == QTYPE.A:
