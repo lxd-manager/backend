@@ -66,25 +66,25 @@ class LXDResolver(BaseResolver):
             cts = Container.objects.filter(name=str(str(rem)[:-1]).lower())
             if cts.exists():
                 ct = cts.first()
-                if int(json.loads(ct.state)["status_code"]) == 103: # only running contianers
-                    reply.add_auth(*RR.fromZone(f"{self.origin} 60 IN NS {settings.DNS_BASE_DOMAIN}"))
+                reply.add_auth(*RR.fromZone(f"{self.origin} 60 IN NS {settings.DNS_BASE_DOMAIN}"))
 
-                    if request.q.qtype == QTYPE.A:
-                        for ip in ct.ip_set.all():
-                            if ip.is_ipv4:
-                                reply.add_answer(RR(qname, QTYPE.A, ttl=self.ttl,
-                                                    rdata=A(ip.ip)))
-                            elif ip.siit_ip.exists():
-                                reply.add_answer(RR(qname, QTYPE.A, ttl=self.ttl,
-                                                    rdata=A(ip.siit_ip.first().ip)))
-                    if request.q.qtype == QTYPE.AAAA:
-                        for ip in ct.ip_set.all():
-                            if not ip.is_ipv4:
-                                reply.add_answer(RR(qname, QTYPE.AAAA, ttl=self.ttl,
-                                                    rdata=AAAA(ip.ip)))
+                if request.q.qtype == QTYPE.A:
+                    for ip in ct.ip_set.all():
+                        if ip.is_ipv4:
+                            reply.add_answer(RR(qname, QTYPE.A, ttl=self.ttl,
+                                                rdata=A(ip.ip)))
+                        elif ip.siit_ip.exists():
+                            reply.add_answer(RR(qname, QTYPE.A, ttl=self.ttl,
+                                                rdata=A(ip.siit_ip.first().ip)))
+                if request.q.qtype == QTYPE.AAAA:
+                    for ip in ct.ip_set.all():
+                        if not ip.is_ipv4:
+                            reply.add_answer(RR(qname, QTYPE.AAAA, ttl=self.ttl,
+                                                rdata=AAAA(ip.ip)))
             # try other server
             if len(reply.rr) == 0 and settings.DNS_MIRROR_SERVER != "":
-                apk = request.send(settings.DNS_MIRROR_SERVER,53)
+                connections.close_all()  # might fail
+                apk = request.send(settings.DNS_MIRROR_SERVER, 53, timeout=30)
                 reply = DNSRecord.parse(apk)
         else:
             reply.header.rcode = RCODE.NXDOMAIN
