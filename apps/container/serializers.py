@@ -50,9 +50,7 @@ class IPSerializer(serializers.ModelSerializer):
     is_ipv4 = serializers.ReadOnlyField()
 
     def validate(self, data):
-        print(data)
-        ipif = ip_interface("%s/%s" % (data.get("ip","0.0.0.0"), data.get("prefixlen",32)))
-        print(ipif)
+        ipif = ip_interface("%s/%s" % (data.get("ip",self.instance.ip), data.get("prefixlen",self.instance.prefixlen)))
         if data.get("container_target",None) is not None:
             ipnet=data["container_target"].host.subnet.get_network()
             if ipif.network != ipnet:
