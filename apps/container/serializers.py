@@ -51,9 +51,10 @@ class IPSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         ipif = ip_interface("%s/%s" % (data["ip"], data["prefixlen"]))
-        ipnet=data["container_target"].host.subnet.get_network()
-        if ipif.network != ipnet:
-            raise serializers.ValidationError("The Host of this container does not route this network.")
+        if data.get("container_target",None) is not None:
+            ipnet=data["container_target"].host.subnet.get_network()
+            if ipif.network != ipnet:
+                raise serializers.ValidationError("The Host of this container does not route this network.")
         return data
 
     class Meta:
