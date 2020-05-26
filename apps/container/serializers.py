@@ -3,6 +3,7 @@ import json
 from django.db.models import Q
 from django.utils.crypto import get_random_string
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 
 from apps.account.drf import is_sudo
 from apps.account.serializers import MyProjectSerializer, MyProjectLinkSerializer
@@ -98,10 +99,10 @@ class ContainerKeySerializer(ContainerSerializer):
 
 class ContainerCreateSerializer(ContainerSerializer):
     host = serializers.HyperlinkedRelatedField(view_name='host-detail', read_only=False, queryset=Host.objects.all())
+    name = serializers.CharField(read_only=False, validators=[UniqueValidator(queryset=Container.objects.all(), lookup='iexact')])
 
     class Meta(ContainerSerializer.Meta):
-        extra_kwargs = {'config': {'read_only': False},
-                        'name': {'read_only': False}}
+        extra_kwargs = {'config': {'read_only': False}}
         fields = ('name', 'description', 'project', 'host', "config")
 
     def create(self, validated_data):
