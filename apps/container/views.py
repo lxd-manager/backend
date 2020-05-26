@@ -50,7 +50,7 @@ class IPViewSet(viewsets.ModelViewSet):
             print("error", e)
             previousct = None
         print("previously ct", previousct)
-        # serializer.instance.container = None
+
         serializer.save()
         if previousct is not None:
             container_reconfig_ip.delay(previousct.id)

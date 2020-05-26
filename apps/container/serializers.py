@@ -10,6 +10,8 @@ from apps.account.serializers import MyProjectSerializer, MyProjectLinkSerialize
 from apps.host.models import Host
 from apps.host.serializers import HostSerializer
 
+from ipaddress import ip_interface
+
 from .models import IP, Container, Hostkey, Project
 from .tasks import create_container
 
@@ -46,6 +48,13 @@ class IPSerializer(serializers.ModelSerializer):
     siit_map = MySIITSerializer(view_name='ip-detail', required=False, allow_null=True)
     container = serializers.HyperlinkedRelatedField(view_name="container-detail", read_only=True)
     is_ipv4 = serializers.ReadOnlyField()
+
+    def validate(self, data):
+        ipif = ip_interface("%s/%s" % (data["ip"], data["prefixlen"]))
+        ipnet=data["container_target"].host.subnet.get_network()
+        if ipif.network != ipnet:
+            raise serializers.ValidationError("The Host of this container does not route this network.")
+        return data
 
     class Meta:
         model = IP
