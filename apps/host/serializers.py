@@ -29,7 +29,6 @@ class HostSerializer(serializers.ModelSerializer):
     trust_password = serializers.CharField(write_only=True, required=False)
     used_memory = serializers.SerializerMethodField('get_memory')
     images = serializers.HyperlinkedRelatedField(many=True, view_name='image-detail', read_only=True, source='image_set')
-    container_count = serializers.SerializerMethodField()
 
     def get_memory(self, obj: Host):
         m = 0
@@ -43,10 +42,7 @@ class HostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Host
-        fields = ('id', 'url', 'name', 'subnet', 'api_url', 'trust_password', 'used_memory', 'images', 'container_count')
-
-    def get_container_count(self, host):
-        return host.container_set.count()
+        fields = ('id', 'url', 'name', 'subnet', 'api_url', 'trust_password', 'used_memory', 'images')
 
     def create(self, validated_data):
         pw = validated_data.pop('trust_password', '')
@@ -54,6 +50,20 @@ class HostSerializer(serializers.ModelSerializer):
         authenticate_host.delay(instance.id, pw)
         return instance
 
+class HostFatSerializer(HostSerializer):
+    container_states = serializers.SerializerMethodField()
+
+    class Meta(HostSerializer.Meta):
+        fields = ('id', 'url', 'name', 'subnet', 'api_url', 'trust_password', 'used_memory', 'images', 'container_states')
+
+    def get_container_states(self, host):
+        states = {}
+        for c in host.container_set.all():
+            s = c.status_code
+            if s not in states:
+                states[s] = 0
+            states[s] += 1
+        return states
 
 class ImageFatSerializer(ImageSerializer):
     available = HostSerializer(many=True)

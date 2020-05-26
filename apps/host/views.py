@@ -3,13 +3,13 @@ from rest_framework import viewsets
 from apps.account.drf import IsStaff, IsSuperuser, is_sudo
 
 from .models import Host, Image, Subnet
-from .serializers import HostSerializer, ImageSerializer, SubnetSerializer, ImageFatSerializer
+from .serializers import HostFatSerializer, ImageSerializer, SubnetSerializer, ImageFatSerializer
 
 # Create your views here.
 
 
 class HostViewSet(viewsets.ModelViewSet):
-    serializer_class = HostSerializer
+    serializer_class = HostFatSerializer
 
     queryset = Host.objects.all()
 
