@@ -65,5 +65,9 @@ class HostFatSerializer(HostSerializer):
             states[s] += 1
         return states
 
+class HostSlimSerializer(HostSerializer):
+    class Meta(HostSerializer.Meta):
+        fields = ('url', 'name')
+
 class ImageFatSerializer(ImageSerializer):
     available = HostSerializer(many=True)

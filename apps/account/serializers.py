@@ -25,9 +25,17 @@ class MyProjectSerializer(ProjectSerializer):
     def get_queryset(self):
         return Project.objects.filter(users=self.context['request'].user)
 
+
+class MyProjectSlimSerializer(MyProjectSerializer):
+    class Meta(MyProjectSerializer.Meta):
+        fields = ('name', 'url')
+        #extra_kwargs = {'name': {'read_only': True}}
+
+
 class MyProjectLinkSerializer(serializers.HyperlinkedRelatedField):
     def get_queryset(self):
         return Project.objects.filter(users=self.context['request'].user)
+
 
 class ProjectCreateSerializer(ProjectSerializer):
 

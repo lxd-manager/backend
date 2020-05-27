@@ -6,9 +6,9 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
 from apps.account.drf import is_sudo
-from apps.account.serializers import MyProjectSerializer, MyProjectLinkSerializer
+from apps.account.serializers import MyProjectSlimSerializer, MyProjectLinkSerializer
 from apps.host.models import Host
-from apps.host.serializers import HostSerializer
+from apps.host.serializers import HostSerializer, HostSlimSerializer
 
 from ipaddress import ip_interface
 
@@ -96,9 +96,11 @@ class ContainerSerializer(serializers.ModelSerializer):
 
 
 class ContainerFatSerializer(ContainerSerializer):
-    project = MyProjectSerializer(required=False, allow_null=True)
-    host = HostSerializer(read_only=True)
-
+    project = MyProjectSlimSerializer(required=False, allow_null=True)
+    host = HostSlimSerializer(read_only=True)
+    class Meta(ContainerSerializer.Meta):
+        fields = ('id', 'url', 'name', 'description', 'project', 'host', 'ips', "state", "state_version", "config", "nesting_enabled",
+                  'target_status_code')
 
 class ContainerKeySerializer(ContainerSerializer):
     keyimport = serializers.CharField(style={'base_template': 'textarea.html'})
