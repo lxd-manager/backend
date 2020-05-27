@@ -98,9 +98,16 @@ class ContainerSerializer(serializers.ModelSerializer):
 class ContainerFatSerializer(ContainerSerializer):
     project = MyProjectSlimSerializer(required=False, allow_null=True)
     host = HostSlimSerializer(read_only=True)
+
     class Meta(ContainerSerializer.Meta):
         fields = ('id', 'url', 'name', 'description', 'project', 'host', 'ips', "state", "state_version", "config", "nesting_enabled",
                   'target_status_code')
+
+class ContainerSlimSerializer(ContainerSerializer):
+
+    class Meta(ContainerSerializer.Meta):
+        fields = ('id', 'url', 'name', 'description', 'project', "state", "state_version", "config",
+                  "nesting_enabled", 'target_status_code')
 
 class ContainerKeySerializer(ContainerSerializer):
     keyimport = serializers.CharField(style={'base_template': 'textarea.html'})
