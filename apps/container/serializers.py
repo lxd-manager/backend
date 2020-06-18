@@ -80,7 +80,7 @@ class ContainerSerializer(serializers.ModelSerializer):
     state = serializers.JSONField(read_only=True, allow_null=True)
     project = MyProjectLinkSerializer(required=False, allow_null=True, view_name='project-detail')
     hostkeys = HostkeySerializer(source="hostkey_set", read_only=True, many=True)
-    host = serializers.HyperlinkedRelatedField(view_name='host-detail', queryset=Host.objects.all())
+    host = serializers.HyperlinkedRelatedField(view_name='host-detail', queryset=Host.objects.all(), required=False)
 
     class Meta:
         model = Container
@@ -91,8 +91,7 @@ class ContainerSerializer(serializers.ModelSerializer):
                         'state_version': {'read_only': True},
                         'target_status_code': {'read_only': True},
                         'config': {'read_only': True},
-                        'name': {'read_only': True},
-                        'host': {'read_only': True}}
+                        'name': {'read_only': True}}
 
 
 class ContainerFatSerializer(ContainerSerializer):

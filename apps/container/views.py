@@ -173,12 +173,12 @@ class ContainerViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         previoushost = serializer.instance.host
         print(previoushost)
-        host = serializer.validated_data.get("host")
+        host = serializer.validated_data.get("host", -1)
         prevnetwork = serializer.instance.custom_network
-        network = serializer.validated_data.get("custom_network")
+        network = serializer.validated_data.get("custom_network", -1)
         serializer.save()
-        if previoushost != host:
+        if host != -1 and previoushost != host:
             container_migrate.delay(serializer.instance.id, previoushost.id)
-        elif network != prevnetwork:
+        elif network != -1 and network != prevnetwork:
             container_reconfig_ip.delay(serializer.instance.id)
 
