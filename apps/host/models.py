@@ -26,6 +26,7 @@ class Host(models.Model):
     subnet = models.ForeignKey(Subnet, on_delete=models.SET_NULL, null=True)
     api_url = models.CharField(max_length=1000, null=True)
     syncing = models.DateTimeField(null=True)
+    monitoring_url = models.CharField(max_length=1000, null=True)
 
     def __str__(self):
         return f"{self.name} in {self.subnet} at {self.api_url}"

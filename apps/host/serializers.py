@@ -42,7 +42,7 @@ class HostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Host
-        fields = ('id', 'url', 'name', 'subnet', 'api_url', 'trust_password', 'used_memory', 'images')
+        fields = ('id', 'url', 'name', 'subnet', 'api_url', 'trust_password', 'used_memory', 'monitoring_url', 'images')
 
     def create(self, validated_data):
         pw = validated_data.pop('trust_password', '')
@@ -54,7 +54,7 @@ class HostFatSerializer(HostSerializer):
     container_states = serializers.SerializerMethodField()
 
     class Meta(HostSerializer.Meta):
-        fields = ('id', 'url', 'name', 'subnet', 'api_url', 'trust_password', 'used_memory', 'images', 'container_states')
+        fields = ('id', 'url', 'name', 'subnet', 'api_url', 'trust_password', 'used_memory', 'monitoring_url', 'images', 'container_states')
 
     def get_container_states(self, host):
         states = {}
