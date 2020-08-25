@@ -22,3 +22,6 @@ class DynamicEntry(models.Model):
     @property
     def combined(self):
         return self.format % self.value
+
+    def __str__(self):
+        return self.format

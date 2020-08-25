@@ -1,4 +1,5 @@
 from rest_framework import viewsets
+from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 
 from apps.account.drf import IsStaff, IsSuperuser, is_sudo
 
@@ -27,7 +28,7 @@ class DNSViewSet(viewsets.ModelViewSet):
 
 class DynamicViewSet(viewsets.ModelViewSet):
     serializer_class = DynamicSerializer
-
+    authentication_classes = [SessionAuthentication, TokenAuthentication]
 
     #queryset = DynamicEntry.objects.all()
     def get_queryset(self):

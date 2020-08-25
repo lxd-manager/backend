@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'apps.dns.apps.DNSConfig',
     'social_django',
     'rest_framework',
+    'rest_framework.authtoken',
 ]
 
 MIDDLEWARE = [
