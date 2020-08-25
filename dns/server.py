@@ -23,7 +23,7 @@ import django  # noqa: F402
 django.setup()
 
 from apps.container.models import Container  # noqa: F402
-from apps.dns.models import ZoneExtra  # noqa: F402
+from apps.dns.models import ZoneExtra, DynamicEntry  # noqa: F402
 from django.conf import settings  # noqa: F402
 from django.db import connections
 
@@ -46,21 +46,27 @@ class LXDResolver(BaseResolver):
 
             found_rrs = []
             found_glob = []
+            rrs = []
             for extra in ZoneExtra.objects.all():
-                rrs = RR.fromZone(extra.entry)
-                for rr in rrs:
-                    if rem.matchSuffix(rr.rname):
-                        rr.rname.label += self.origin.label
-                        found_rrs.append(rr)
-                    elif rem.matchGlob(rr.rname):
-                        rr.rname.label += self.origin.label
-                        found_glob.append(rr)
+                rrs += RR.fromZone(extra.entry)
+            for dyn in DynamicEntry.objects.all():
+                rrs += RR.fromZone(dyn.combined)
+            for rr in rrs:
+                if rem.matchSuffix(rr.rname):
+                    rr.rname.label += self.origin.label
+                    found_rrs.append(rr)
+                elif rem.matchGlob(rr.rname):
+                    rr.rname.label += self.origin.label
+                    found_glob.append(rr)
+
 
             if len(found_rrs):
                 reply.add_auth(*RR.fromZone(f"{self.origin} 60 IN NS {settings.DNS_BASE_DOMAIN}"))
                 reply.add_answer(*found_rrs)
             elif len(found_glob):
                 reply.add_auth(*RR.fromZone(f"{self.origin} 60 IN NS {settings.DNS_BASE_DOMAIN}"))
+                for g in found_glob:
+                    g.set_rname(qname)
                 reply.add_answer(*found_glob)
 
             cts = Container.objects.filter(name=str(str(rem)[:-1]).lower())
