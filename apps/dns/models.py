@@ -16,5 +16,9 @@ class ZoneExtra(models.Model):
 
 class DynamicEntry(models.Model):
     format = models.TextField()
-    value = models.TextField()
+    value = models.TextField(null=True, blank=True)
     owners = models.ManyToManyField(User)
+
+    @property
+    def combined(self):
+        return self.format % self.value
