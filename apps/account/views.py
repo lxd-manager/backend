@@ -36,18 +36,19 @@ class UserViewSet(ModelViewSet):
     def _detail_user(self, request, instance):
         serializer = self.get_serializer(instance)
 
-        if request.user != instance:
-            return Response(serializer.data)
+        data = {**serializer.data,}
 
-        gl = gitlab.Gitlab(getattr(settings, "SOCIAL_AUTH_GITLAB_API_URL"),
-                           oauth_token=request.user.social_auth.get().access_token)
-        gl.auth()
-        current_user = gl.user
-        keys = []
-        for k in current_user.keys.list():
-            keys.append({"title": k.title, "key": k.key})
+        if request.user == instance:
+            gl = gitlab.Gitlab(getattr(settings, "SOCIAL_AUTH_GITLAB_API_URL"),
+                               oauth_token=request.user.social_auth.get().access_token)
+            gl.auth()
+            current_user = gl.user
+            keys = []
+            for k in current_user.keys.list():
+                keys.append({"title": k.title, "key": k.key})
 
-        return Response({**serializer.data, "superuser": request.user.is_superuser, "sshkeys": keys})
+            data["sshkeys"]= keys
+        return Response(data)
 
     @action(detail=False, methods=['get'])
     def me(self, request, pk=None):

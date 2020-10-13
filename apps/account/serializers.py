@@ -6,9 +6,18 @@ from apps.container.models import Project
 
 
 class UserSerializer(serializers.ModelSerializer):
+    approved = serializers.SerializerMethodField(read_only=False)
+    superuser = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ('id', 'username', 'url', 'first_name', 'last_name')
+        fields = ('id', 'username', 'url', 'first_name', 'last_name', 'approved', 'superuser')
+        extra_kwargs = {'username': {'read_only': True}}
+
+    def get_approved(self, user):
+        return user.has_perm('container.view_container')
+    def get_superuser(self, user):
+        return user.is_superuser
 
 
 class ProjectSerializer(serializers.ModelSerializer):
