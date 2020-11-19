@@ -11,6 +11,7 @@ from django.db.models.functions import Now
 from django.utils.text import slugify
 from pylxd import Client
 from pylxd.exceptions import LXDAPIException, NotFound
+from pylxd import models
 
 from apps.container.models import IP, Container
 from apps.host.models import Host, Image
@@ -101,11 +102,15 @@ def synchost(host_id):
         available_aliases = []
         for image in client.images.all():
             # check for aliases
-            available_aliases += [a['name'] for a in image.aliases]
 
             io = Image.objects.get_or_create(properties=json.dumps(image.properties), fingerprint=image.fingerprint)[0]
             io.available.add(host)
-            fingerprints.append(image.fingerprint)
+            if io.remove:
+                image: models.image.Image
+                image.delete()
+            else:
+                available_aliases += [a['name'] for a in image.aliases]
+                fingerprints.append(image.fingerprint)
 
         for image in Image.objects.all():
             if image.fingerprint not in fingerprints:

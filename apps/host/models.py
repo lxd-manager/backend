@@ -42,6 +42,7 @@ class Image(models.Model):
 
     available = models.ManyToManyField(Host)
     sync = models.BooleanField(default=False)
+    remove = models.BooleanField(default=False)
 
     server = models.CharField(max_length=300, null=True)
     protocol = models.CharField(max_length=25, choices=PROTOCOL, default=LXD)
