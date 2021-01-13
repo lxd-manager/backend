@@ -15,6 +15,7 @@ from dnslib.dns import DNSRecord
 import sys
 import os
 import json
+from datetime import datetime
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ct_backend.settings")
 sys.path.append(os.path.abspath(__file__ + "/../../"))
@@ -38,11 +39,12 @@ class LXDResolver(BaseResolver):
     def resolve(self, request, handler):
         reply = request.reply()
         qname = request.q.qname
+        qtype = request.q.qtype
 
         suffix = DNSLabel(self.origin)
         if str(qname.label[-len(suffix.label):]).lower() == str(suffix.label).lower():
             rem = DNSLabel(qname.label[:-len(suffix.label)])
-            print(rem)
+            print("queries for :", rem, qtype)
 
             found_rrs = []
             found_glob = []
@@ -52,19 +54,17 @@ class LXDResolver(BaseResolver):
             for dyn in DynamicEntry.objects.all():
                 rrs += RR.fromZone(dyn.combined)
             for rr in rrs:
-                if rem.matchSuffix(rr.rname):
+                if rem.matchSuffix(rr.rname) and rr.rtype == qtype:
                     rr.rname.label += self.origin.label
                     found_rrs.append(rr)
-                elif rem.matchGlob(rr.rname):
+                elif rem.matchGlob(rr.rname) and rr.rtype == qtype:
                     rr.rname.label += self.origin.label
                     found_glob.append(rr)
 
 
             if len(found_rrs):
-                reply.add_auth(*RR.fromZone(f"{self.origin} 60 IN NS {settings.DNS_BASE_DOMAIN}"))
                 reply.add_answer(*found_rrs)
             elif len(found_glob):
-                reply.add_auth(*RR.fromZone(f"{self.origin} 60 IN NS {settings.DNS_BASE_DOMAIN}"))
                 for g in found_glob:
                     g.set_rname(qname)
                 reply.add_answer(*found_glob)
@@ -72,8 +72,7 @@ class LXDResolver(BaseResolver):
             cts = Container.objects.filter(name=str(str(rem)[:-1]).lower())
             if cts.exists():
                 ct = cts.first()
-                reply.add_auth(*RR.fromZone(f"{self.origin} 60 IN NS {settings.DNS_BASE_DOMAIN}"))
-
+                
                 if request.q.qtype == QTYPE.A:
                     for ip in ct.ip_set.all():
                         if ip.is_ipv4:
@@ -96,6 +95,11 @@ class LXDResolver(BaseResolver):
 
             if len(reply.rr) == 0:
                 reply.header.rcode = RCODE.NOERROR
+                now = datetime.now()
+                soatime = now.strftime('%y%j')+"%05d"%(now.hour*3600+now.minute*60+now.second)
+                reply.add_auth(*RR.fromZone(f"{self.origin} 60 IN SOA {settings.DNS_BASE_DOMAIN} non-exist.{settings.DNS_BASE_DOMAIN} {soatime} 900 900 1800 60"))
+            else:
+                reply.add_auth(*RR.fromZone(f"{self.origin} 60 IN NS {settings.DNS_BASE_DOMAIN}"))
         else:
             reply.header.rcode = RCODE.NXDOMAIN
 
