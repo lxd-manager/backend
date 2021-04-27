@@ -182,7 +182,7 @@ class Hostkey(models.Model):
 
 
 class IP(models.Model):
-    ip = models.GenericIPAddressField()
+    ip = models.GenericIPAddressField(unique=True)
     prefixlen = models.PositiveIntegerField()
 
     container = models.ForeignKey(Container, on_delete=models.SET_NULL, null=True)
