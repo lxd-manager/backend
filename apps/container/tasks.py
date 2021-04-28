@@ -1,6 +1,7 @@
 from __future__ import absolute_import, unicode_literals
 
 import json
+import urllib3
 from datetime import datetime, timedelta, timezone
 from ipaddress import ip_interface, IPv6Interface
 
@@ -46,6 +47,9 @@ def synchost(host_id):
 
         client = Client(endpoint=host.api_url, cert=(getattr(settings, "LXD_CRT"), getattr(settings, "LXD_KEY")),
                         verify=getattr(settings, "LXD_CA_CERT"), timeout=60)
+
+        if not getattr(settings, "LXD_CA_CERT"):
+            urllib3.disable_warnings()
 
         existingcts = []
         for ct in client.containers.all():
