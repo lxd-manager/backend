@@ -11,4 +11,4 @@ gunicorn
 dnslib
 get-docker-secret
 psycopg2
-django-fernet-fields
+djfernet
