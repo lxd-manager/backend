@@ -54,7 +54,7 @@ class LXDResolver(BaseResolver):
             for dyn in DynamicEntry.objects.all():
                 rrs += RR.fromZone(dyn.combined)
             for rr in rrs:
-                if rem.matchSuffix(rr.rname) and rr.rtype in [qtype, QTYPE.CNAME]:
+                if rem == rr.rname and rr.rtype in [qtype, QTYPE.CNAME]:
                     rr.rname.label += self.origin.label
                     found_rrs.append(rr)
                 elif rem.matchGlob(rr.rname) and rr.rtype in [qtype, QTYPE.CNAME]:
