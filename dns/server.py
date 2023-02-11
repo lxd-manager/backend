@@ -15,6 +15,7 @@ from dnslib.dns import DNSRecord
 import sys
 import os
 import json
+import ipaddress
 from datetime import datetime
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ct_backend.settings")
@@ -42,7 +43,30 @@ class LXDResolver(BaseResolver):
         qtype = request.q.qtype
 
         suffix = DNSLabel(self.origin)
-        if str(qname.label[-len(suffix.label):]).lower() == str(suffix.label).lower():
+        if request.q.qtype == QTYPE.AXFR and settings.DNS_ALLOW_TRANSFER and ipaddress.ip_address(handler.client_address[0]) in ipaddress.ip_network(settings.DNS_ALLOW_TRANSFER):
+            rrs = []
+
+            now = datetime.now()
+            soatime = now.strftime('%y%j')+"%05d"%(now.hour*3600+now.minute*60+now.second)
+            rrs += RR.fromZone(f"{self.origin} 60 IN SOA {settings.DNS_BASE_DOMAIN} non-exist.{settings.DNS_BASE_DOMAIN} {soatime} 900 900 1800 60")
+
+            for extra in ZoneExtra.objects.all():
+                rrs += RR.fromZone(extra.entry)
+            for dyn in DynamicEntry.objects.all():
+                rrs += RR.fromZone(dyn.combined)
+            for cts in Container.objects.all():
+                for ip in ct.ip_set.all():
+                    if ip.is_ipv4:
+                        rrs += RR(qname, QTYPE.A, ttl=self.ttl, rdata=A(ip.ip))
+                    elif ip.siit_ip.exists():
+                        rrs += RR(qname, QTYPE.A, ttl=self.ttl, rdata=A(ip.siit_ip.first().ip))
+                    else:
+                        rrs += RR(qname, QTYPE.AAAA, ttl=self.ttl, rdata=AAAA(ip.ip))
+
+            rrs += RR.fromZone(f"{self.origin} 60 IN SOA {settings.DNS_BASE_DOMAIN} non-exist.{settings.DNS_BASE_DOMAIN} {soatime} 900 900 1800 60")
+
+            reply.add_answer(*rrs)
+        elif str(qname.label[-len(suffix.label):]).lower() == str(suffix.label).lower():
             rem = DNSLabel(qname.label[:-len(suffix.label)])
             print("queries for :", rem, qtype)
 
